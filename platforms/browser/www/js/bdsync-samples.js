@@ -5,7 +5,20 @@
  * or NATIVE_URI instead.
  */
 
+var currentEm = null;
+
+function toggleElement(id) {
+  var element = document.getElementById(id);
+  element.disabled = (element.disabled === true ? false : true);
+}
+
 function deviceDemo() {
+  console.log("Device Demo");
+  // Remove existing element
+  if(currentEm !== null) {
+    document.body.removeChild(currentEm);
+  }
+  
   function onSuccess(device) {
     var deviceEm = document.createElement("p");
     deviceEm.style.position = "absolute";
@@ -19,6 +32,7 @@ function deviceDemo() {
                          "Manufacturer: " + device.manufacturer + '\n' +
                          "Serial: " + device.serial + '\n';
     document.body.appendChild(deviceEm);
+    currentEm = deviceEm;
   }
 
   function onFail(message) {
@@ -30,6 +44,12 @@ function deviceDemo() {
 }
 
 function cameraDemo() {
+  console.log("Camera Demo");
+  // Remove existing element
+  if(currentEm !== null) {
+    document.body.removeChild(currentEm);
+  }
+  
   function onSuccess(imageData) {
     var image = document.createElement("img");
     image.style.position = "absolute";
@@ -38,6 +58,7 @@ function cameraDemo() {
     image.style.width = "256px";
     image.src = "data:image/jpeg;base64," + imageData;
     document.body.appendChild(image);
+    currentEm = image;
   }
 
   function onFail(message) {
@@ -54,15 +75,25 @@ function cameraDemo() {
  */
 var accelWatchID = null;
 function accelerometerDemo() {
-  var accelBtn = document.getElementById("accelerometer");
-  var accelEm = document.getElementById("accel");
+  console.log("Accelerometer Demo");
   
-  if(accelWatchID === null) {
+  var accelBtn = document.getElementById("accelerometer"),
+      accelEm = document.getElementById("accel");
+  
+  if(accelWatchID !== null && accelEm !== null && accelBtn !== null) {
+    console.log("clearing watch");
     navigator.accelerometer.clearWatch(accelWatchID);
     accelWatchID = null;
     accelBtn.innerText = "accelerometer.watchAcceleration"
     document.body.removeChild(accelEm);
+    currentEm = null;
+    toggleElement("compass");
     return;
+  }
+  
+  // Remove existing element
+  if(currentEm !== null) {
+    document.body.removeChild(currentEm);
   }
   
   function onSuccess(acceleration) {
@@ -73,6 +104,7 @@ function accelerometerDemo() {
       accelEm.style.top = "0px";
       accelEm.style.left = "0px";
       document.body.appendChild(accelEm);
+      currentEm = accelEm;
     }
     accelEm.innerText = 'Acceleration X: ' + acceleration.x + '\n' +
       'Acceleration Y: ' + acceleration.y + '\n' +
@@ -87,6 +119,7 @@ function accelerometerDemo() {
   var options = { frequency: 1000 };
   accelWatchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
   accelBtn.innerText = "accelerometer.clearWatch"
+  toggleElement("compass");
 }
 
 /*
@@ -94,13 +127,24 @@ function accelerometerDemo() {
  */
 var compassWatchID = null;
 function compassDemo() {
-  var compassBtn = document.getElementById("compass");
-  var compassEm = document.getElementById("heading");
-  if(compassWatchID === null) {
+  console.log("Compass Demo");
+
+  var compassBtn = document.getElementById("compass"),
+      compassEm = document.getElementById("heading");
+
+  if(compassWatchID !== null && compassEm !== null && compassBtn !== null) {
     navigator.compass.clearWatch(compassWatchID);
     compassWatchID = null;
     compassBtn.innerText = "compass.watchHeading";
     document.body.removeChild(compassEm);
+    currentEm = null;
+    toggleElement("accelerometer");
+    return;
+  }
+  
+  // Remove existing element
+  if(currentEm !== null) {
+    document.body.removeChild(currentEm);
   }
 
   function onSuccess(heading) {
@@ -111,6 +155,7 @@ function compassDemo() {
       compassEm.style.top = "0px";
       compassEm.style.left = "0px";
       document.body.appendChild(compassEm);
+      currentEm = compassEm;
     }
     compassEm.innerText = 'Heading: ' + heading.magneticHeading;
   };
@@ -123,13 +168,36 @@ function compassDemo() {
   var options = { frequency: 1000 };
   compassWatchID = navigator.compass.watchHeading(onSuccess, onError, options);
   compassBtn.innerText = "compass.clearWatch";
+  toggleElement("accelerometer");
 }
 /*
  *  cordova-plugin-network-information
  */
 
 function connectionDemo() {
-  navigator.connection.getInfo(function(d) { console.log(d); });
+  console.log("Connection Demo");
+  
+  // Remove existing element
+  if(currentEm !== null) {
+    document.body.removeChild(currentEm);
+  }
+
+  function onSuccess(connection) {
+    connectionEm = document.createElement("p");
+    connectionEm.id = "connection";
+    connectionEm.style.position = "absolute";
+    connectionEm.style.top = "0px";
+    connectionEm.style.left = "0px";
+    document.body.appendChild(connectionEm);
+    currentEm = connectionEm;
+    connectionEm.innerText = 'Connection type: ' + connection.type;
+  }
+
+  function onError(e) {
+    alert("Connection type Error");
+  }
+
+  navigator.connection.getInfo(onSuccess, onError);
 }
 
 
@@ -145,6 +213,7 @@ function vibrationDemo() {
  */
 
 function fileDemo() {
+  console.log("File Demo");
 
   function onErrorLoadFs(e) {
     console.log("error loading FS: "+e.message);
@@ -215,9 +284,9 @@ function fileDemo() {
 }
 
 document.addEventListener('deviceready', function(e) {
-  document.getElementById("accelerometer").onclick = function() { accelerometerDemo() };
-  document.getElementById("compass").onclick = function() { compassDemo() };
-  document.getElementById("camera").onclick = function() { cameraDemo() };
-  document.getElementById("device").onclick = deviceDemo; //function() { deviceDemo() };
-  document.getElementById("connection").onclick = function() { connectionDemo };
+  document.getElementById("accelerometer").onclick = accelerometerDemo;
+  document.getElementById("compass").onclick = compassDemo;
+  document.getElementById("camera").onclick = cameraDemo
+  document.getElementById("device").onclick = deviceDemo;
+  document.getElementById("connection").onclick = connectionDemo;
 });

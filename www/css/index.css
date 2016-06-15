@@ -117,7 +117,12 @@ h1 {
     -webkit-animation:fade 3000ms infinite;
 }
 
+div .controls {
+  width: 250px;
+  max-width: 90ex;
+}
+
 .phonegap-btn {
-  font-size: 18px;
+  float: left;
   padding: 1em;
 }
